@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+	<style type="text/css">
+		html, body {
+			width: 100%;
+			height: 100%;
+			padding: 0;
+			margin: 0;
+		}
+		
+		#map {
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+	
+	<!-- Google Maps API -->
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDKYXv8JyXEjSDacPiBUsMfqzce-QwbsVs"></script>
+		
+</head>
+<body>
+	
+	<div id="map"></div>
+	
+</body>
+
+<script type="text/javascript">
+	
+	// Make map object
+	var map = new google.maps.Map(document.getElementById('map'));
+	
+	// Congressional district's ID goes here
+	var geoid = "0608";
+	
+	// Load geojson file of congressional districts
+	map.data.loadGeoJson('congressional_districts.geojson', null, function(){
+		
+		map.data.setStyle(function(feature) {
+			// If this is the right district, style it good.
+			if(feature.getProperty('GEOID') == geoid)
+				return ({
+					// Add style options here. They're available at https://developers.google.com/maps/documentation/javascript/3.exp/reference#Data.StyleOptions
+					fillColor: "red",
+					strokeWeight: 1,
+					strokeColor: "black"
+				});
+			else
+				return ({
+					// If this isn't the right district, turn it off.
+					visible: false,
+				});
+		});
+		
+				// Resize and re-center ma
+		var bounds = new google.maps.LatLngBounds();
+		map.data.forEach(function(feature) {
+			if(feature.getProperty('GEOID') == geoid){
+				processPoints(feature.getGeometry(), bounds.extend, bounds);
+			}
+		});
+		map.fitBounds(bounds);
+
+	});
+	
+
+	// Stole this function from https://developers.google.com/maps/documentation/javascript/examples/layer-data-dragndrop
+	// Looks like Google doesn't have an automatic function to determine the bounds of a geometry object. boooo.
+	function processPoints(geometry, callback, thisArg) {
+	  if (geometry instanceof google.maps.LatLng) {
+	    callback.call(thisArg, geometry);
+	  } else if (geometry instanceof google.maps.Data.Point) {
+	    callback.call(thisArg, geometry.get());
+	  } else {
+	    geometry.getArray().forEach(function(g) {
+	      processPoints(g, callback, thisArg);
+	    });
+	  }
+	}
+	
+</script>
+
+</html>
